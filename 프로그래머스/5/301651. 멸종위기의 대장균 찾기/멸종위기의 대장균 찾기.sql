@@ -1,0 +1,34 @@
+WITH RECURSIVE GEN AS (
+    -- 1세대(루트)
+    SELECT
+        ID,
+        1 AS GENERATION
+    FROM ECOLI_DATA
+    WHERE PARENT_ID IS NULL
+
+    UNION ALL
+
+    -- 자식으로 내려가며 세대 +1
+    SELECT
+        E.ID,
+        G.GENERATION + 1
+    FROM ECOLI_DATA E
+    JOIN GEN G
+      ON E.PARENT_ID = G.ID
+),
+LEAF AS (
+    -- 자식이 없는 개체만(leaf)
+    SELECT
+        G.ID,
+        G.GENERATION
+    FROM GEN G
+    LEFT JOIN ECOLI_DATA C
+      ON C.PARENT_ID = G.ID
+    WHERE C.ID IS NULL
+)
+SELECT
+    COUNT(*) AS COUNT,
+    GENERATION
+FROM LEAF
+GROUP BY GENERATION
+ORDER BY GENERATION;
